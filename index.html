@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Kharch Book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <div id="kb-root">
+
+    <!-- SPLASH -->
+    <div id="kb-splash">
+      <div class="mark">KB</div>
+      <h1>KHARCH BOOK</h1>
+      <p class="tag">Har Kharch Ka Hisaab, Ek Jagah.</p>
+      <p class="sub">Track your money. Control your spending. Stay financially organized.</p>
+    </div>
+
+    <!-- SETUP -->
+    <div class="kb-screen" id="scr-setup">
+      <div style="padding-top:10px;">
+        <h2 style="font-size:19px;margin:0 0 4px;">Welcome to Kharch Book</h2>
+        <p style="font-size:12.5px;color:var(--muted);margin:0 0 20px;">Apna basic setup complete karein aur apna daily hisaab manage karna shuru karein.</p>
+      </div>
+      <div class="kb-field"><label>Your Name</label><input type="text" id="su-name" placeholder="e.g. Rohit Verma"></div>
+      <div class="kb-field"><label>Mobile Number</label><input type="text" id="su-mobile" placeholder="10-digit mobile number"></div>
+      <div class="kb-field"><label>Currency</label>
+        <select id="su-currency"><option value="₹">₹ Indian Rupee</option><option value="$">$ US Dollar</option><option value="€">€ Euro</option></select>
+      </div>
+      <div class="kb-field"><label>Account Type</label>
+        <div class="kb-toggle-row" id="su-type">
+          <div class="opt sel" data-v="Personal">Personal</div>
+          <div class="opt" data-v="Business">Business</div>
+        </div>
+      </div>
+      <div class="kb-field"><label>Opening Cash Balance</label><input type="number" id="su-opening" placeholder="0"></div>
+      <button class="kb-btn" onclick="KB.finishSetup()">CONTINUE</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="kb-screen" id="scr-home">
+      <div class="kb-topbar">
+        <div><p class="kb-greet" id="hm-greet">Good Morning</p><p class="kb-greet-name" id="hm-name">there</p></div>
+        <div style="display:flex;gap:8px;">
+          <div class="kb-iconbtn" onclick="KB.go('search')"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.3" y1="15.3" x2="20.5" y2="20.5"/></svg></div>
+          <div class="kb-iconbtn" onclick="KB.go('notifications')"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 10.2a5.5 5.5 0 0 1 11 0c0 4 1.4 5.3 1.4 5.3H5.1s1.4-1.3 1.4-5.3z"/><path d="M10 18.5a2 2 0 0 0 4 0"/></svg></div>
+        </div>
+      </div>
+
+      <div class="kb-hero">
+        <p class="lbl">Total Balance</p>
+        <p class="amt" id="hm-balance">₹0.00</p>
+        <div class="row">
+          <div class="stat inc"><p class="k">Income</p><p class="v" id="hm-income">₹0</p></div>
+          <div class="stat exp"><p class="k">Expense</p><p class="v" id="hm-expense">₹0</p></div>
+          <div class="stat"><p class="k">Saved</p><p class="v" id="hm-saved">₹0</p></div>
+        </div>
+      </div>
+
+      <p class="kb-qa-title">Quick Actions</p>
+      <div class="kb-qa-grid">
+        <div class="kb-qa" onclick="KB.openForm('expense')"><div class="ic" style="background:#FDE7E6;color:var(--red);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div><div class="lb">Add Expense</div></div>
+        <div class="kb-qa" onclick="KB.openForm('income')"><div class="ic" style="background:#DFF6EA;color:var(--green);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div><div class="lb">Add Income</div></div>
+        <div class="kb-qa" onclick="KB.openForm('payment')"><div class="ic" style="background:#E7EEFB;color:var(--blue);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L3 10.5l7 2.5 2.5 7L21 3z"/><path d="M10.5 13L21 3"/></svg></div><div class="lb">Send Payment</div></div>
+        <div class="kb-qa" onclick="KB.openForm('receive')"><div class="ic" style="background:#FBF0DA;color:var(--amber);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10L12 15.5 16.5 10"/><line x1="4" y1="19" x2="20" y2="19"/></svg></div><div class="lb">Request Money</div></div>
+        <div class="kb-qa" onclick="KB.openForm('udhari')"><div class="ic" style="background:#F1E8FB;color:var(--violet);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.6"/><circle cx="16.5" cy="12" r="2.8"/><path d="M3 19c0-3 2.6-5 6-5s6 2 6 5"/><path d="M14.2 19c.3-1.9 1.7-3.2 3.8-3.2 2 0 3.5 1.2 3.9 3.2"/></svg></div><div class="lb">Add Udhari</div></div>
+        <div class="kb-qa" onclick="KB.openForm('transfer')"><div class="ic" style="background:#E7EEFB;color:var(--blue-2);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3"/><path d="M20 17H7l3 3"/></svg></div><div class="lb">Transfer</div></div>
+        <div class="kb-qa" onclick="KB.go('budget')"><div class="ic" style="background:#DFF6EA;color:var(--green);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></div><div class="lb">Budget</div></div>
+        <div class="kb-qa" onclick="KB.go('reports')"><div class="ic" style="background:#E7EEFB;color:var(--blue);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg></div><div class="lb">Reports</div></div>
+      </div>
+
+      <div class="kb-sect-head"><h3>Recent Transactions</h3><span class="kb-link" onclick="KB.go('transactions')">See all</span></div>
+      <div id="hm-recent"></div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="kb-screen" id="scr-transactions">
+      <div class="kb-form-title"><h2 style="flex:1;">All Transactions</h2></div>
+      <div class="kb-search"><span><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.3" y1="15.3" x2="20.5" y2="20.5"/></svg></span><input type="text" id="tx-search" placeholder="Search transactions" oninput="KB.renderTransactions()"></div>
+      <div class="kb-tabs" id="tx-tabs">
+        <div class="kb-tab sel" data-v="ALL">All</div>
+        <div class="kb-tab" data-v="Income">Income</div>
+        <div class="kb-tab" data-v="Expense">Expense</div>
+        <div class="kb-tab" data-v="Payment">Payment</div>
+        <div class="kb-tab" data-v="Receive">Receive</div>
+        <div class="kb-tab" data-v="Udhari">Udhari</div>
+      </div>
+      <div id="tx-list"></div>
+    </div>
+
+    <!-- TRANSACTION DETAILS -->
+    <div class="kb-screen" id="scr-details">
+      <div class="kb-form-title"><div class="kb-back" onclick="KB.go('transactions')"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><path d="M11 6l-6 6 6 6"/></svg></div><h2>Transaction Details</h2></div>
+      <div class="kb-card" id="detail-body"></div>
+      <div style="display:flex;gap:10px;">
+        <button class="kb-btn outline" style="flex:1;" onclick="KB.shareReceipt(KB.state.selectedTxnId)">SHARE</button>
+        <button class="kb-btn" style="flex:1;background:var(--red);" onclick="KB.deleteTransaction(KB.state.selectedTxnId)">DELETE</button>
+      </div>
+    </div>
+
+    <!-- UDHARI -->
+    <div class="kb-screen" id="scr-udhari">
+      <div class="kb-form-title"><h2 style="flex:1;">Udhari</h2></div>
+      <div class="kb-toggle-row" id="ud-tabs">
+        <div class="opt sel" data-v="lena">Lena Hai</div>
+        <div class="opt" data-v="dena">Dena Hai</div>
+      </div>
+      <div id="ud-list"></div>
+    </div>
+
+    <!-- PARTY LEDGER -->
+    <div class="kb-screen" id="scr-party">
+      <div class="kb-form-title"><div class="kb-back" onclick="KB.go('udhari')"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><path d="M11 6l-6 6 6 6"/></svg></div><h2 id="party-name">Party</h2></div>
+      <div class="kb-card">
+        <div class="kb-detail-row"><span class="k">Total Given</span><span class="v" id="party-given">₹0</span></div>
+        <div class="kb-detail-row"><span class="k">Received</span><span class="v" id="party-received">₹0</span></div>
+        <div class="kb-detail-row"><span class="k">Balance</span><span class="v" id="party-balance">₹0</span></div>
+      </div>
+      <div class="kb-sect-head"><h3>Transaction History</h3></div>
+      <div id="party-history"></div>
+      <button class="kb-btn" onclick="KB.openForm('udhari', KB.state.selectedParty)">+ ADD TRANSACTION</button>
+    </div>
+
+    <!-- BUDGET -->
+    <div class="kb-screen" id="scr-budget">
+      <div class="kb-form-title"><h2 style="flex:1;">My Budget</h2></div>
+      <div class="kb-card">
+        <p class="lbl" style="font-size:12px;color:var(--muted);margin:0;">Monthly Budget</p>
+        <p class="kb-num" style="font-size:22px;font-weight:800;margin:2px 0 10px;" id="bg-total">₹0</p>
+        <div class="kb-progress"><div class="fill" id="bg-progress-fill"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:4px;">
+          <span>Spent: <b id="bg-spent" style="color:var(--ink)">₹0</b></span>
+          <span>Remaining: <b id="bg-remaining" style="color:var(--ink)">₹0</b></span>
+        </div>
+      </div>
+      <div class="kb-sect-head"><h3>Category Budgets</h3></div>
+      <div id="bg-categories"></div>
+      <button class="kb-btn" onclick="KB.openBudgetForm()">+ CREATE / EDIT BUDGET</button>
+    </div>
+
+    <!-- ACCOUNTS -->
+    <div class="kb-screen" id="scr-accounts">
+      <div class="kb-form-title"><h2 style="flex:1;">My Accounts</h2></div>
+      <div id="acc-list"></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="kb-screen" id="scr-reports">
+      <div class="kb-form-title"><h2 style="flex:1;">Money Reports</h2></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div class="kb-card" style="margin:0;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Total Income</p><p style="font-size:16px;font-weight:800;color:var(--green);margin:0;" id="rp-income">₹0</p></div>
+        <div class="kb-card" style="margin:0;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Total Expense</p><p style="font-size:16px;font-weight:800;color:var(--red);margin:0;" id="rp-expense">₹0</p></div>
+        <div class="kb-card" style="margin:0;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Savings</p><p style="font-size:16px;font-weight:800;margin:0;" id="rp-savings">₹0</p></div>
+        <div class="kb-card" style="margin:0;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Total Udhari</p><p style="font-size:16px;font-weight:800;margin:0;" id="rp-udhari">₹0</p></div>
+      </div>
+      <div class="kb-sect-head"><h3>Expense by Category</h3></div>
+      <div class="kb-card" id="rp-categories"></div>
+      <div class="kb-sect-head"><h3>Smart Insights</h3></div>
+      <div id="rp-insights"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="kb-screen" id="scr-profile">
+      <div class="kb-form-title"><h2 style="flex:1;">My Profile</h2></div>
+      <div class="kb-avatar-big" id="pf-avatar">R</div>
+      <p style="text-align:center;font-weight:700;font-size:15px;margin:0 0 2px;" id="pf-name">—</p>
+      <p style="text-align:center;font-size:12px;color:var(--muted);margin:0 0 20px;" id="pf-mobile">—</p>
+      <div class="kb-card">
+        <div class="kb-profile-row" onclick="KB.go('accounts')"><span class="l"><span class="ic2"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8a2 2 0 0 1 2-2h12.5a1 1 0 0 1 1 1v2"/><rect x="3.5" y="8" width="17" height="11" rx="2"/><circle cx="16.2" cy="13.5" r="1.3" fill="currentColor" stroke="none"/></svg></span>Accounts</span><span>›</span></div>
+        <div class="kb-profile-row" onclick="KB.go('budget')"><span class="l"><span class="ic2"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></span>Budget</span><span>›</span></div>
+        <div class="kb-profile-row" onclick="KB.exportData()"><span class="l"><span class="ic2"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10L12 15.5 16.5 10"/><line x1="4" y1="19" x2="20" y2="19"/></svg></span>Export Data (JSON)</span><span>›</span></div>
+        <div class="kb-profile-row" onclick="KB.toast('Balance visibility toggled')"><span class="l"><span class="ic2"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M6.6 6.8C4.6 8.1 3.1 10 2.2 12c1.8 3.6 5.5 7 9.8 7 1.7 0 3.3-.4 4.7-1.1M9.9 5.2A10.6 10.6 0 0 1 12 5c4.6 0 8.3 3.5 10 7-.5 1-1.2 2-2 2.9"/></svg></span>Hide Balance</span><span>›</span></div>
+        <div class="kb-profile-row" onclick="KB.toast('This is a prototype — app lock is not wired up yet')"><span class="l"><span class="ic2"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="1.6"/><path d="M8 11V7.2a4 4 0 0 1 8 0V11"/></svg></span>Security / App Lock</span><span>›</span></div>
+        <div class="kb-profile-row" onclick="KB.resetData()"><span class="l"><span class="ic2"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><path d="M6.2 7l1 13h9.6l1-13"/><path d="M9.3 7V4h5.4v3"/></svg></span>Reset All Data</span><span>›</span></div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="kb-screen" id="scr-notifications">
+      <div class="kb-form-title"><div class="kb-back" onclick="KB.go('home')"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><path d="M11 6l-6 6 6 6"/></svg></div><h2>Notifications</h2></div>
+      <div id="notif-list"></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="kb-screen" id="scr-search">
+      <div class="kb-form-title"><div class="kb-back" onclick="KB.go('home')"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><path d="M11 6l-6 6 6 6"/></svg></div><h2>Search</h2></div>
+      <div class="kb-search"><span><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.3" y1="15.3" x2="20.5" y2="20.5"/></svg></span><input type="text" id="gs-input" placeholder="Search person, transaction, category..." oninput="KB.globalSearch()"></div>
+      <div id="gs-results"></div>
+    </div>
+
+    <!-- ============ ADD SHEET ============ -->
+    <div class="kb-sheet-overlay" id="add-sheet-overlay" onclick="KB.closeSheetOnBg(event)">
+      <div class="kb-sheet">
+        <div class="kb-sheet-handle"></div>
+        <h3>What do you want to add?</h3>
+        <div class="kb-add-opt" onclick="KB.openForm('expense')"><div class="ic" style="background:#FDE7E6;color:var(--red);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div><div class="txt"><p class="t">Expense</p><p class="d">Log money spent</p></div></div>
+        <div class="kb-add-opt" onclick="KB.openForm('income')"><div class="ic" style="background:#DFF6EA;color:var(--green);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div><div class="txt"><p class="t">Income</p><p class="d">Log money received</p></div></div>
+        <div class="kb-add-opt" onclick="KB.openForm('payment')"><div class="ic" style="background:#E7EEFB;color:var(--blue);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L3 10.5l7 2.5 2.5 7L21 3z"/><path d="M10.5 13L21 3"/></svg></div><div class="txt"><p class="t">Payment</p><p class="d">Pay a person or shop</p></div></div>
+        <div class="kb-add-opt" onclick="KB.openForm('receive')"><div class="ic" style="background:#FBF0DA;color:var(--amber);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10L12 15.5 16.5 10"/><line x1="4" y1="19" x2="20" y2="19"/></svg></div><div class="txt"><p class="t">Receive Money</p><p class="d">Record money you got</p></div></div>
+        <div class="kb-add-opt" onclick="KB.openForm('udhari')"><div class="ic" style="background:#F1E8FB;color:var(--violet);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.6"/><circle cx="16.5" cy="12" r="2.8"/><path d="M3 19c0-3 2.6-5 6-5s6 2 6 5"/><path d="M14.2 19c.3-1.9 1.7-3.2 3.8-3.2 2 0 3.5 1.2 3.9 3.2"/></svg></div><div class="txt"><p class="t">Udhaar</p><p class="d">Lending or borrowing</p></div></div>
+        <div class="kb-add-opt" onclick="KB.openForm('transfer')"><div class="ic" style="background:#E7EEFB;color:var(--blue-2);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3"/><path d="M20 17H7l3 3"/></svg></div><div class="txt"><p class="t">Transfer</p><p class="d">Move money between accounts</p></div></div>
+      </div>
+    </div>
+
+    <!-- ============ FORM SHEET (generic) ============ -->
+    <div class="kb-sheet-overlay" id="form-sheet-overlay" onclick="KB.closeSheetOnBg(event, 'form')">
+      <div class="kb-sheet" id="form-sheet-body" style="max-height:88%;"></div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="kb-nav" id="kb-nav">
+      <div class="kb-nav-item active" data-scr="home" onclick="KB.go('home')"><span class="ic"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5L12 4l8 7.5"/><path d="M6 10v9h5v-5h2v5h5v-9"/></svg></span>Home</div>
+      <div class="kb-nav-item" data-scr="transactions" onclick="KB.go('transactions')"><span class="ic"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="7" x2="19" y2="7"/><line x1="8" y1="12" x2="19" y2="12"/><line x1="8" y1="17" x2="19" y2="17"/><circle cx="4.5" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="17" r="1" fill="currentColor" stroke="none"/></svg></span>History</div>
+      <div class="kb-nav-add" onclick="KB.openAddSheet()">+</div>
+      <div class="kb-nav-item" data-scr="budget" onclick="KB.go('budget')"><span class="ic"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></span>Budget</div>
+      <div class="kb-nav-item" data-scr="profile" onclick="KB.go('profile')"><span class="ic"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.3" r="3.6"/><path d="M4.5 20c1.3-3.8 4.2-5.8 7.5-5.8s6.2 2 7.5 5.8"/></svg></span>Profile</div>
+    </div>
+
+    <div class="kb-toast" id="kb-toast"></div>
+  </div>
+
+  
+
+  
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
