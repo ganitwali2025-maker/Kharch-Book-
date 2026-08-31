@@ -159,6 +159,7 @@
     renderHome(){
       const d = this.state.data;
       document.getElementById('hm-name').textContent = d.profile.name;
+      document.getElementById('hm-avatar').textContent = (d.profile.name || 'U')[0].toUpperCase();
       const h = new Date().getHours();
       document.getElementById('hm-greet').textContent = h<12?'Good Morning':(h<17?'Good Afternoon':'Good Evening');
 
