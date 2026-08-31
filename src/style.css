@@ -9,9 +9,9 @@
       position: fixed;
     }
     :root{
-      --ink:#101828;
-      --blue:#0F2E5C;
-      --blue-2:#2563A8;
+      --ink:#1A1A1A;
+      --blue:#2E7D32;
+      --blue-2:#4CAF50;
       --green:#0E9F6E;
       --red:#DC3B32;
       --amber:#D98C0F;

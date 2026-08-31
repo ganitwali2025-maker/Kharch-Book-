@@ -135,7 +135,7 @@
       if(screen==='home') this.renderHome();
       if(screen==='transactions') this.renderTransactions();
       if(screen==='members') this.renderMembers();
-      if(screen==='budget') this.renderBudget();
+      if(screen==='member-profile') this.renderMemberProfile();
       if(screen==='accounts') this.renderAccounts();
       if(screen==='reports') this.renderReports();
       if(screen==='profile') this.renderProfile();
@@ -251,14 +251,40 @@
 
     formTemplate(type){
       if (type === 'member') {
+        const memCount = (this.state.data.members || []).length + 1;
+        const autoId = 'M-' + String(memCount).padStart(3, '0');
         return `
         <div class="kb-sheet-handle"></div>
         <div class="kb-form-title"><h2 style="flex:1;">Add Member</h2></div>
-        <div class="kb-field"><label>Name</label><input type="text" id="f-member-name" placeholder="Name"></div>
-        <div class="kb-field"><label>Designation</label><input type="text" id="f-member-designation" placeholder="Designation"></div>
+        
+        <div class="kb-field" style="display:flex; gap:10px; align-items:center;">
+          <div id="f-member-photo-preview" style="width:50px; height:50px; border-radius:50%; background:var(--border); display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            ${I('users')}
+          </div>
+          <div style="flex:1;">
+            <label>Member Photo</label>
+            <input type="file" id="f-member-photo" accept="image/*" onchange="KB.handlePhotoSelect(event)" style="font-size:12px;">
+            <input type="hidden" id="f-member-photo-b64" value="">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+          <div class="kb-field" style="flex:1;"><label>Member ID</label><input type="text" id="f-member-id" value="${autoId}" readonly style="background:#f5f5f5; color:var(--muted);"></div>
+          <div class="kb-field" style="flex:1;"><label>Status</label>
+            <select id="f-member-status" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; font-size:16px;">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="kb-field"><label>Member Name</label><input type="text" id="f-member-name" placeholder="Full Name"></div>
+        <div class="kb-field"><label>Father / Husband Name</label><input type="text" id="f-member-fname" placeholder="Father/Husband Name"></div>
+        <div class="kb-field"><label>Mobile Number</label><input type="tel" id="f-member-mobile" placeholder="Mobile Number"></div>
         <div class="kb-field"><label>Address</label><input type="text" id="f-member-address" placeholder="Address"></div>
-        <div class="kb-field"><label>Mobile</label><input type="tel" id="f-member-mobile" placeholder="Mobile Number"></div>
-        <div class="kb-field"><label>Notes</label><textarea id="f-member-notes" rows="2" placeholder="Notes..."></textarea></div>
+        <div class="kb-field"><label>Joining Date</label><input type="date" id="f-member-jdate" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div class="kb-field"><label>Monthly Jama Amount</label><input type="number" id="f-member-jama" placeholder="0"></div>
+        <div class="kb-field"><label>Other Details</label><textarea id="f-member-notes" rows="2" placeholder="Notes..."></textarea></div>
         <button class="kb-btn" onclick="KB.submitForm()">SAVE MEMBER</button>
         `;
       }
@@ -322,11 +348,19 @@
       if (type === 'member') {
         const name = document.getElementById('f-member-name').value.trim();
         if(!name){ this.toast('Please enter a name'); return; }
-        const designation = document.getElementById('f-member-designation').value.trim();
+        const memId = document.getElementById('f-member-id').value;
+        const fname = document.getElementById('f-member-fname').value.trim();
         const address = document.getElementById('f-member-address').value.trim();
         const mobile = document.getElementById('f-member-mobile').value.trim();
+        const jdate = document.getElementById('f-member-jdate').value;
+        const status = document.getElementById('f-member-status').value;
+        const monthlyJama = parseFloat(document.getElementById('f-member-jama').value) || 0;
         const mnotes = document.getElementById('f-member-notes').value.trim();
-        this.state.data.members.push({ id: Date.now(), name, designation, address, mobile, notes: mnotes });
+        const photo = document.getElementById('f-member-photo-b64').value;
+
+        this.state.data.members.push({
+          id: memId, name, fname, address, mobile, jdate, status, monthlyJama, notes: mnotes, photo, ts: Date.now()
+        });
         this.save();
         this.closeAllSheets();
         this.toast('Member added');
@@ -376,11 +410,40 @@
       else if(type==='transfer'){
         const from = document.getElementById('f-from').value;
         const to = document.getElementById('f-to').value;
-        if(from===to){ this.toast('Choose two different accounts'); return; }
-        d.accounts[from] = (d.accounts[from]||0) - amount;
-        d.accounts[to] = (d.accounts[to]||0) + amount;
+        if(from===to){ this.toast('Cannot transfer to same account'); return; }
+        this.state.data.accounts[from] = (this.state.data.accounts[from]||0) - amount;
+        this.state.data.accounts[to] = (this.state.data.accounts[to]||0) + amount;
         this.addTxn({type:'Transfer', amount, category:'Transfer', party:`${from} → ${to}`, method:from, notes, ts});
         this.save(); this.closeAllSheets(); this.toast('Transfer complete'); this.go('home');
+        return;
+      }
+      else if(type === 'jama') {
+        const amtEl = document.getElementById('f-jama-amount');
+        const jamaAmount = amtEl ? parseFloat(amtEl.value) : 0;
+        if(!jamaAmount || jamaAmount<=0){ this.toast('Please enter a valid amount'); return; }
+        const dateInput = document.getElementById('f-jama-date').value;
+        const jType = document.getElementById('f-jama-type').value;
+        const method = document.querySelector('#f-jama-method .opt.sel').dataset.v;
+        const jamaNotes = document.getElementById('f-jama-notes').value.trim();
+        const tsJama = dateInput ? new Date(dateInput).getTime() : Date.now();
+        const memId = this.state.selectedMemberId;
+
+        this.addTxn({
+          type: 'Income', 
+          amount: jamaAmount, 
+          category: jType, 
+          party: memId, 
+          method, 
+          notes: jamaNotes, 
+          ts: tsJama
+        });
+        
+        this.state.data.accounts[method] = (this.state.data.accounts[method]||0) + jamaAmount;
+        
+        this.save();
+        this.closeAllSheets();
+        this.toast('Jama recorded');
+        this.renderMemberProfile(); 
         return;
       }
 
@@ -388,6 +451,30 @@
       this.closeAllSheets();
       this.toast('Saved successfully');
       this.go('home');
+    },
+
+    handlePhotoSelect(e){
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const max = 150; 
+          let w = img.width, h = img.height;
+          if(w > h && w > max){ h *= max/w; w = max; }
+          else if(h > max){ w *= max/h; h = max; }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          document.getElementById('f-member-photo-b64').value = dataUrl;
+          document.getElementById('f-member-photo-preview').innerHTML = `<img src="${dataUrl}" style="width:100%; height:100%; object-fit:cover;">`;
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
     },
 
     addTxn(t){
@@ -487,80 +574,157 @@
       d.members.forEach(m => {
         const row = document.createElement('div');
         row.className = 'kb-party-row'; 
+        row.style.alignItems = 'flex-start';
+        row.onclick = () => this.openMemberProfile(m.id);
+        
+        const photoHtml = m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : m.name.charAt(0).toUpperCase();
+
         row.innerHTML = `
-          <div class="av2">${m.name.charAt(0).toUpperCase()}</div>
+          <div class="av2" style="width:45px; height:45px; flex-shrink:0;">${photoHtml}</div>
           <div class="info">
-            <p class="n" style="margin-bottom:2px;">${m.name}</p>
-            <p class="d" style="font-size:12px;">${m.designation || 'No Designation'}</p>
-            <p class="d" style="font-size:11px; color:var(--muted-2); margin-top:2px;">${m.address || ''}</p>
+            <p class="n" style="margin-bottom:2px; font-weight:700;">${m.name}</p>
+            <p class="d" style="font-size:12px; color:var(--muted-2); margin-bottom:4px;">ID: <b style="color:var(--ink);">${m.id}</b> • ${m.mobile||'No mobile'}</p>
+            <div style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; background:${m.status==='Active'?'var(--green)':'var(--red)'}; color:white;">${m.status||'Active'}</div>
           </div>
           <div class="side" style="text-align:right;">
-            <div style="font-size:11px;color:var(--blue); font-weight:600;">${m.mobile||''}</div>
+            <div style="font-size:12px; font-weight:600; color:var(--blue);">₹${m.monthlyJama||0}/mo</div>
           </div>
         `;
         box.appendChild(row);
       });
     },
 
-    // ---------- BUDGET ----------
-    openBudgetForm(){
-      const body = document.getElementById('form-sheet-body');
+    openMemberProfile(memId) {
+      this.state.selectedMemberId = memId;
+      this.go('member-profile');
+    },
+
+    renderMemberProfile(){
       const d = this.state.data;
+      const m = d.members.find(x => x.id === this.state.selectedMemberId);
+      if(!m) return;
+      
+      const photoHtml = m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : m.name.charAt(0).toUpperCase();
+      
+      document.getElementById('mp-header').innerHTML = `
+        <div class="kb-card" style="text-align:center; padding-top:24px;">
+          <div style="width:80px; height:80px; background:var(--bg); color:var(--blue); border-radius:50%; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; border:4px solid var(--border); overflow:hidden;">
+            ${photoHtml}
+          </div>
+          <h2 style="margin:0 0 4px; font-size:20px; font-weight:800;">${m.name}</h2>
+          <p style="margin:0 0 10px; font-size:14px; color:var(--muted);">${m.fname ? 'S/W/D of '+m.fname : ''}</p>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left; background:var(--bg); padding:12px; border-radius:12px; margin-top:16px;">
+            <div><p style="margin:0;font-size:11px;color:var(--muted);">Member ID</p><p style="margin:2px 0 0;font-weight:700;">${m.id}</p></div>
+            <div><p style="margin:0;font-size:11px;color:var(--muted);">Mobile</p><p style="margin:2px 0 0;font-weight:700;">${m.mobile||'—'}</p></div>
+            <div><p style="margin:0;font-size:11px;color:var(--muted);">Joining Date</p><p style="margin:2px 0 0;font-weight:700;">${m.jdate ? new Date(m.jdate).toLocaleDateString() : '—'}</p></div>
+            <div><p style="margin:0;font-size:11px;color:var(--muted);">Status</p><div style="display:inline-block; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; background:${m.status==='Active'?'var(--green)':'var(--red)'}; color:white; margin-top:2px;">${m.status||'Active'}</div></div>
+          </div>
+        </div>
+      `;
+
+      const txns = d.transactions.filter(t => t.party === m.id && t.type === 'Income');
+      
+      let totalJama = 0;
+      let thisMonthJama = 0;
+      let ganeshJama = 0;
+      let otherJama = 0;
+      
+      const now = new Date();
+      const currMonth = now.getMonth();
+      const currYear = now.getFullYear();
+
+      txns.forEach(t => {
+        totalJama += t.amount;
+        const dDate = new Date(t.ts);
+        if (dDate.getMonth() === currMonth && dDate.getFullYear() === currYear) {
+          thisMonthJama += t.amount;
+        }
+        if (t.category === 'Ganesh Chaturthi') ganeshJama += t.amount;
+        else if (t.category === 'Other Jama') otherJama += t.amount;
+      });
+
+      document.getElementById('mp-summary').innerHTML = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+          <div class="kb-card" style="padding:12px;">
+            <p style="margin:0;font-size:11px;color:var(--muted);">Total Jama</p>
+            <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:var(--blue);">${this.fmt(totalJama)}</p>
+          </div>
+          <div class="kb-card" style="padding:12px;">
+            <p style="margin:0;font-size:11px;color:var(--muted);">This Month</p>
+            <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:var(--green);">${this.fmt(thisMonthJama)}</p>
+          </div>
+        </div>
+        <div class="kb-card" style="padding:12px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="font-size:13px;">Ganesh Chaturthi Jama</span>
+            <span style="font-weight:700;">${this.fmt(ganeshJama)}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="font-size:13px;">Other Jama</span>
+            <span style="font-weight:700;">${this.fmt(otherJama)}</span>
+          </div>
+        </div>
+      `;
+
+      const histBox = document.getElementById('mp-history');
+      histBox.innerHTML = '';
+      if(txns.length===0) {
+        histBox.innerHTML = '<div class="kb-empty">No Jama records found.</div>';
+      } else {
+        [...txns].sort((a,b)=>b.ts-a.ts).forEach(t => {
+          const row = document.createElement('div');
+          row.className = 'kb-txn';
+          const dt = new Date(t.ts);
+          row.innerHTML = `<div class="av" style="background:#DFF6EA;color:var(--green);">${I('arrow-down')}</div>
+            <div class="mid"><p class="name">${t.category} - ${t.method}</p><p class="meta">${dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})} • ${t.notes ? 'Rcpt: '+t.notes : ''}</p></div>
+            <div class="amt pos">${this.fmt(t.amount)}</div>`;
+          histBox.appendChild(row);
+        });
+      }
+    },
+
+    openJamaForm(){
+      const d = this.state.data;
+      const m = d.members.find(x => x.id === this.state.selectedMemberId);
+      if(!m) return;
+      document.getElementById('add-sheet-overlay').classList.remove('active');
+      this.state.currentForm = 'jama';
+      const body = document.getElementById('form-sheet-body');
+      
+      const now = new Date();
+      const dateVal = now.toISOString().slice(0,10);
+      
       body.innerHTML = `
         <div class="kb-sheet-handle"></div>
-        <div class="kb-form-title"><h2 style="flex:1;">Set Budget</h2></div>
-        <div class="kb-field"><label>Monthly Budget Total</label>
-          <div class="kb-amount-input"><span class="cur">${d.profile.currency}</span><input type="number" id="bud-total" value="${d.budgets.monthly||''}" placeholder="0"></div>
+        <div class="kb-form-title"><h2 style="flex:1;">Add Jama</h2></div>
+        <div class="kb-field" style="text-align:center; padding:10px; background:var(--bg); border-radius:12px; margin-bottom:20px;">
+          <p style="margin:0; font-size:13px; color:var(--muted);">Collecting for Member</p>
+          <p style="margin:2px 0 0; font-weight:700;">${m.name} (${m.id})</p>
         </div>
-        <div class="kb-sect-head"><h3>Category Limits</h3></div>
-        ${CATS.filter(c=>c.n!=='Salary').map(c=>`
-          <div class="kb-field"><label style="display:flex;align-items:center;gap:6px;">${I(c.ic,'sm')} ${c.n}</label>
-          <input type="number" id="bud-cat-${c.n}" value="${d.budgets.categories[c.n]||''}" placeholder="0"></div>
-        `).join('')}
-        <button class="kb-btn" onclick="KB.saveBudget()">SAVE BUDGET</button>
+        
+        <div class="kb-field"><label>Jama Amount</label>
+          <div class="kb-amount-input"><span class="cur">${d.profile.currency}</span><input type="number" id="f-jama-amount" placeholder="0"></div>
+        </div>
+        <div class="kb-field"><label>Date</label><input type="date" id="f-jama-date" value="${dateVal}"></div>
+        <div class="kb-field"><label>Jama Type</label>
+          <select id="f-jama-type" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; font-size:16px;">
+            <option value="Monthly Jama">Monthly Jama</option>
+            <option value="Ganesh Chaturthi">Ganesh Chaturthi</option>
+            <option value="Other Jama">Other Jama</option>
+          </select>
+        </div>
+        <div class="kb-field"><label>Method</label>
+          <div class="kb-toggle-row" id="f-jama-method">
+            <div class="opt sel" data-v="Cash" onclick="document.querySelectorAll('#f-jama-method .opt').forEach(x=>x.classList.remove('sel')); this.classList.add('sel');">Cash</div>
+            <div class="opt" data-v="UPI" onclick="document.querySelectorAll('#f-jama-method .opt').forEach(x=>x.classList.remove('sel')); this.classList.add('sel');">UPI</div>
+            <div class="opt" data-v="Bank" onclick="document.querySelectorAll('#f-jama-method .opt').forEach(x=>x.classList.remove('sel')); this.classList.add('sel');">Bank</div>
+          </div>
+        </div>
+        <div class="kb-field"><label>Receipt No. / Notes</label><textarea id="f-jama-notes" rows="1" placeholder="Receipt Number..."></textarea></div>
+        <button class="kb-btn" onclick="KB.submitForm()">SAVE JAMA</button>
       `;
       document.getElementById('form-sheet-overlay').classList.add('active');
-    },
-    saveBudget(){
-      const d = this.state.data;
-      d.budgets.monthly = parseFloat(document.getElementById('bud-total').value) || 0;
-      CATS.filter(c=>c.n!=='Salary').forEach(c=>{
-        const v = parseFloat(document.getElementById('bud-cat-'+c.n).value) || 0;
-        if(v>0) d.budgets.categories[c.n] = v; else delete d.budgets.categories[c.n];
-      });
-      this.save();
-      this.closeAllSheets();
-      this.toast('Budget saved');
-      this.go('budget');
-    },
-    renderBudget(){
-      const d = this.state.data;
-      const spentByCat = {};
-      let totalSpent = 0;
-      d.transactions.forEach(t=>{
-        if(t.type==='Expense'){ spentByCat[t.category] = (spentByCat[t.category]||0) + t.amount; totalSpent += t.amount; }
-      });
-      document.getElementById('bg-total').textContent = this.fmt(d.budgets.monthly);
-      document.getElementById('bg-spent').textContent = this.fmt(totalSpent);
-      document.getElementById('bg-remaining').textContent = this.fmt(Math.max(d.budgets.monthly - totalSpent,0));
-      const pct = d.budgets.monthly>0 ? Math.min((totalSpent/d.budgets.monthly)*100,100) : 0;
-      const fill = document.getElementById('bg-progress-fill');
-      fill.style.width = pct+'%';
-      fill.className = 'fill' + (pct>=100?' over':(pct>=80?' warn':''));
-
-      const box = document.getElementById('bg-categories');
-      box.innerHTML = '';
-      const catEntries = Object.entries(d.budgets.categories);
-      if(catEntries.length===0){ box.innerHTML = '<div class="kb-empty">No category budgets set yet.</div>'; return; }
-      catEntries.forEach(([cat,limit])=>{
-        const spent = spentByCat[cat]||0;
-        const p = Math.min((spent/limit)*100,100);
-        const row = document.createElement('div');
-        row.className = 'kb-bar-row';
-        row.innerHTML = `<div class="top"><span class="c">${this.catIcon(cat)} ${cat}</span><span class="v">${this.fmt(spent)} / ${this.fmt(limit)}</span></div>
-          <div class="kb-bar-track"><div class="kb-bar-fill" style="width:${p}%;background:${p>=100?'var(--red)':(p>=80?'var(--amber)':'var(--green)')};"></div></div>`;
-        box.appendChild(row);
-      });
     },
 
     // ---------- ACCOUNTS ----------
