@@ -117,7 +117,8 @@
       display:flex; align-items:center; justify-content:space-around; padding:12px 6px calc(16px + env(safe-area-inset-bottom)); z-index:20; }
     .kb-nav-item{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:var(--muted-2); font-size:12px; font-weight:700; cursor:pointer; min-width:60px; min-height:54px; }
     .kb-nav-item.active{ color:var(--blue); }
-    .kb-nav-item .ic{ font-size:26px; }
+    .kb-nav-item .ic{ display:flex; align-items:center; justify-content:center; }
+    .kb-nav-item .kb-i { width:24px; height:24px; }
     .kb-nav-add{ width:66px; height:66px; border-radius:50%; background:linear-gradient(135deg,#0F2E5C,#2563A8); color:#fff;
       display:flex; align-items:center; justify-content:center; font-size:32px; margin-top:-40px; box-shadow:0 6px 14px rgba(29,53,87,0.35); cursor:pointer; }
 
