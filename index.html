@@ -69,7 +69,7 @@
         <div class="kb-qa" onclick="KB.openForm('income')"><div class="ic" style="background:#DFF6EA;color:var(--green);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div><div class="lb">Add Income</div></div>
         <div class="kb-qa" onclick="KB.openForm('payment')"><div class="ic" style="background:#E7EEFB;color:var(--blue);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L3 10.5l7 2.5 2.5 7L21 3z"/><path d="M10.5 13L21 3"/></svg></div><div class="lb">Send Payment</div></div>
         <div class="kb-qa" onclick="KB.openForm('receive')"><div class="ic" style="background:#FBF0DA;color:var(--amber);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10L12 15.5 16.5 10"/><line x1="4" y1="19" x2="20" y2="19"/></svg></div><div class="lb">Request Money</div></div>
-        <div class="kb-qa" onclick="KB.openForm('udhari')"><div class="ic" style="background:#F1E8FB;color:var(--violet);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.6"/><circle cx="16.5" cy="12" r="2.8"/><path d="M3 19c0-3 2.6-5 6-5s6 2 6 5"/><path d="M14.2 19c.3-1.9 1.7-3.2 3.8-3.2 2 0 3.5 1.2 3.9 3.2"/></svg></div><div class="lb">Add Udhari</div></div>
+        <div class="kb-qa" onclick="KB.openForm('member')"><div class="ic" style="background:#F1E8FB;color:var(--violet);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="lb">Add Member</div></div>
         <div class="kb-qa" onclick="KB.openForm('transfer')"><div class="ic" style="background:#E7EEFB;color:var(--blue-2);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3"/><path d="M20 17H7l3 3"/></svg></div><div class="lb">Transfer</div></div>
         <div class="kb-qa" onclick="KB.go('budget')"><div class="ic" style="background:#DFF6EA;color:var(--green);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg></div><div class="lb">Budget</div></div>
         <div class="kb-qa" onclick="KB.go('reports')"><div class="ic" style="background:#E7EEFB;color:var(--blue);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="6"/><line x1="19" y1="20" x2="19" y2="15"/></svg></div><div class="lb">Reports</div></div>
@@ -91,7 +91,6 @@
         <div class="kb-tab" data-v="Expense">Expense</div>
         <div class="kb-tab" data-v="Payment">Payment</div>
         <div class="kb-tab" data-v="Receive">Receive</div>
-        <div class="kb-tab" data-v="Udhari">Udhari</div>
       </div>
       <div id="tx-list"></div>
     </div>
@@ -106,27 +105,10 @@
       </div>
     </div>
 
-    <!-- UDHARI -->
-    <div class="kb-screen" id="scr-udhari">
-      <div class="kb-form-title"><h2 style="flex:1;">Udhari</h2></div>
-      <div class="kb-toggle-row" id="ud-tabs">
-        <div class="opt sel" data-v="lena">Lena Hai</div>
-        <div class="opt" data-v="dena">Dena Hai</div>
-      </div>
-      <div id="ud-list"></div>
-    </div>
-
-    <!-- PARTY LEDGER -->
-    <div class="kb-screen" id="scr-party">
-      <div class="kb-form-title"><div class="kb-back" onclick="KB.go('udhari')"><svg class="kb-i sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><path d="M11 6l-6 6 6 6"/></svg></div><h2 id="party-name">Party</h2></div>
-      <div class="kb-card">
-        <div class="kb-detail-row"><span class="k">Total Given</span><span class="v" id="party-given">₹0</span></div>
-        <div class="kb-detail-row"><span class="k">Received</span><span class="v" id="party-received">₹0</span></div>
-        <div class="kb-detail-row"><span class="k">Balance</span><span class="v" id="party-balance">₹0</span></div>
-      </div>
-      <div class="kb-sect-head"><h3>Transaction History</h3></div>
-      <div id="party-history"></div>
-      <button class="kb-btn" onclick="KB.openForm('udhari', KB.state.selectedParty)">+ ADD TRANSACTION</button>
+    <!-- MEMBERS -->
+    <div class="kb-screen" id="scr-members">
+      <div class="kb-form-title"><h2 style="flex:1;">Members</h2></div>
+      <div id="members-list"></div>
     </div>
 
     <!-- BUDGET -->
@@ -158,8 +140,7 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
         <div class="kb-card" style="margin:0;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Total Income</p><p style="font-size:16px;font-weight:800;color:var(--green);margin:0;" id="rp-income">₹0</p></div>
         <div class="kb-card" style="margin:0;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Total Expense</p><p style="font-size:16px;font-weight:800;color:var(--red);margin:0;" id="rp-expense">₹0</p></div>
-        <div class="kb-card" style="margin:0;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Savings</p><p style="font-size:16px;font-weight:800;margin:0;" id="rp-savings">₹0</p></div>
-        <div class="kb-card" style="margin:0;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Total Udhari</p><p style="font-size:16px;font-weight:800;margin:0;" id="rp-udhari">₹0</p></div>
+        <div class="kb-card" style="margin:0;grid-column:span 2;"><p style="font-size:11px;color:var(--muted);margin:0 0 4px;">Savings</p><p style="font-size:16px;font-weight:800;margin:0;" id="rp-savings">₹0</p></div>
       </div>
       <div class="kb-sect-head"><h3>Expense by Category</h3></div>
       <div class="kb-card" id="rp-categories"></div>
@@ -205,7 +186,7 @@
         <div class="kb-add-opt" onclick="KB.openForm('income')"><div class="ic" style="background:#DFF6EA;color:var(--green);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div><div class="txt"><p class="t">Income</p><p class="d">Log money received</p></div></div>
         <div class="kb-add-opt" onclick="KB.openForm('payment')"><div class="ic" style="background:#E7EEFB;color:var(--blue);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3L3 10.5l7 2.5 2.5 7L21 3z"/><path d="M10.5 13L21 3"/></svg></div><div class="txt"><p class="t">Payment</p><p class="d">Pay a person or shop</p></div></div>
         <div class="kb-add-opt" onclick="KB.openForm('receive')"><div class="ic" style="background:#FBF0DA;color:var(--amber);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 10L12 15.5 16.5 10"/><line x1="4" y1="19" x2="20" y2="19"/></svg></div><div class="txt"><p class="t">Receive Money</p><p class="d">Record money you got</p></div></div>
-        <div class="kb-add-opt" onclick="KB.openForm('udhari')"><div class="ic" style="background:#F1E8FB;color:var(--violet);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.6"/><circle cx="16.5" cy="12" r="2.8"/><path d="M3 19c0-3 2.6-5 6-5s6 2 6 5"/><path d="M14.2 19c.3-1.9 1.7-3.2 3.8-3.2 2 0 3.5 1.2 3.9 3.2"/></svg></div><div class="txt"><p class="t">Udhaar</p><p class="d">Lending or borrowing</p></div></div>
+        <div class="kb-add-opt" onclick="KB.openForm('member')"><div class="ic" style="background:#F1E8FB;color:var(--violet);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div><div class="txt"><p class="t">Add Member</p><p class="d">Add person details</p></div></div>
         <div class="kb-add-opt" onclick="KB.openForm('transfer')"><div class="ic" style="background:#E7EEFB;color:var(--blue-2);"><svg class="kb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13l-3-3"/><path d="M20 17H7l3 3"/></svg></div><div class="txt"><p class="t">Transfer</p><p class="d">Move money between accounts</p></div></div>
       </div>
     </div>

@@ -84,6 +84,7 @@
       }catch(e){ loaded = null; }
 
       if(loaded){
+        if (!loaded.members) loaded.members = [];
         this.state.data = loaded;
         setTimeout(()=>{ document.getElementById('kb-splash').style.display='none'; this.go('home'); }, 900);
       } else {
@@ -102,7 +103,8 @@
         accounts: { Cash: profile.opening||0, Bank: 0, UPI: 0, Wallet: 0 },
         transactions: [],
         budgets: { monthly: 0, categories: {} },
-        parties: {}
+        parties: {},
+        members: []
       };
     },
 
@@ -132,13 +134,12 @@
       document.querySelectorAll('.kb-nav-item').forEach(n=>n.classList.toggle('active', n.dataset.scr===screen));
       if(screen==='home') this.renderHome();
       if(screen==='transactions') this.renderTransactions();
-      if(screen==='udhari') this.renderUdhari();
+      if(screen==='members') this.renderMembers();
       if(screen==='budget') this.renderBudget();
       if(screen==='accounts') this.renderAccounts();
       if(screen==='reports') this.renderReports();
       if(screen==='profile') this.renderProfile();
       if(screen==='notifications') this.renderNotifications();
-      if(screen==='party') this.renderParty();
       window.scrollTo(0,0);
     },
 
@@ -249,9 +250,21 @@
     },
 
     formTemplate(type){
+      if (type === 'member') {
+        return `
+        <div class="kb-sheet-handle"></div>
+        <div class="kb-form-title"><h2 style="flex:1;">Add Member</h2></div>
+        <div class="kb-field"><label>Name</label><input type="text" id="f-member-name" placeholder="Name"></div>
+        <div class="kb-field"><label>Designation</label><input type="text" id="f-member-designation" placeholder="Designation"></div>
+        <div class="kb-field"><label>Address</label><input type="text" id="f-member-address" placeholder="Address"></div>
+        <div class="kb-field"><label>Mobile</label><input type="tel" id="f-member-mobile" placeholder="Mobile Number"></div>
+        <div class="kb-field"><label>Notes</label><textarea id="f-member-notes" rows="2" placeholder="Notes..."></textarea></div>
+        <button class="kb-btn" onclick="KB.submitForm()">SAVE MEMBER</button>
+        `;
+      }
       const now = new Date();
       const dateVal = now.toISOString().slice(0,10);
-      const titles = {expense:'Add Expense', income:'Add Income', payment:'Make Payment', receive:'Receive Money', udhari:'Add Udhari', transfer:'Transfer Money'};
+      const titles = {expense:'Add Expense', income:'Add Income', payment:'Make Payment', receive:'Receive Money', member:'Add Member', transfer:'Transfer Money'};
 
       let catChips = '';
       if(type==='expense'){
@@ -266,17 +279,6 @@
       let partyLabel = type==='payment' ? 'Paid To' : (type==='receive' ? 'Received From' : (type==='income' ? 'Received From' : 'Paid To'));
 
       let extra = '';
-      if(type==='udhari'){
-        extra = `
-        <div class="kb-field"><label>Type</label>
-          <div class="kb-toggle-row" id="f-udhari-dir">
-            <div class="opt sel" data-v="given">I Gave (Lena Hai)</div>
-            <div class="opt" data-v="taken">I Took (Dena Hai)</div>
-          </div>
-        </div>`;
-        partyLabel = 'Person Name';
-        methodChips = '';
-      }
       if(type==='transfer'){
         extra = `
         <div class="kb-field"><label>From Account</label>
@@ -317,7 +319,23 @@
 
     submitForm(){
       const type = this.state.currentForm;
-      const amount = parseFloat(document.getElementById('f-amount').value);
+      if (type === 'member') {
+        const name = document.getElementById('f-member-name').value.trim();
+        if(!name){ this.toast('Please enter a name'); return; }
+        const designation = document.getElementById('f-member-designation').value.trim();
+        const address = document.getElementById('f-member-address').value.trim();
+        const mobile = document.getElementById('f-member-mobile').value.trim();
+        const mnotes = document.getElementById('f-member-notes').value.trim();
+        this.state.data.members.push({ id: Date.now(), name, designation, address, mobile, notes: mnotes });
+        this.save();
+        this.closeAllSheets();
+        this.toast('Member added');
+        this.go('members');
+        return;
+      }
+      
+      const amtEl = document.getElementById('f-amount');
+      const amount = amtEl ? parseFloat(amtEl.value) : 0;
       if(!amount || amount<=0){ this.toast('Please enter a valid amount'); return; }
       const dateInput = document.getElementById('f-date').value;
       const notes = document.getElementById('f-notes') ? document.getElementById('f-notes').value : '';
@@ -355,12 +373,6 @@
         this.save(); this.closeAllSheets(); this.toast('Money received recorded'); this.go('home');
         return;
       }
-      else if(type==='udhari'){
-        const party = document.getElementById('f-party').value.trim();
-        if(!party){ this.toast('Please enter person name'); return; }
-        const dir = document.querySelector('#f-udhari-dir .opt.sel').dataset.v;
-        this.addUdhari(party, amount, dir, notes, ts);
-      }
       else if(type==='transfer'){
         const from = document.getElementById('f-from').value;
         const to = document.getElementById('f-to').value;
@@ -382,21 +394,6 @@
       t.id = 'tx_' + Date.now() + '_' + Math.floor(Math.random()*9999);
       this.state.data.transactions.push(t);
       return t;
-    },
-
-    addUdhari(party, amount, direction, notes, ts){
-      const d = this.state.data;
-      if(!d.parties[party]) d.parties[party] = {given:0, received:0, history:[]};
-      const p = d.parties[party];
-      // direction 'given' = lena hai (they owe us) ; 'taken' = dena hai (we owe them)
-      const entry = {ts, amount, direction, notes};
-      p.history.push(entry);
-      if(direction==='given') p.given += amount; else p.received += amount;
-      this.addTxn({type:'Udhari', amount, category:'Udhari', party, method:'Cash', notes, ts, udhariDirection: direction});
-      this.save();
-      this.closeAllSheets();
-      this.toast('Udhari recorded');
-      this.go('udhari');
     },
 
     showSuccess(txn, label){
@@ -468,11 +465,6 @@
       // reverse balance effect
       if(t.type==='Expense' || t.type==='Payment') d.accounts[t.method] = (d.accounts[t.method]||0) + t.amount;
       if(t.type==='Income' || t.type==='Receive') d.accounts[t.method] = (d.accounts[t.method]||0) - t.amount;
-      if(t.type==='Udhari' && d.parties[t.party]){
-        const p = d.parties[t.party];
-        if(t.udhariDirection==='given') p.given -= t.amount; else p.received -= t.amount;
-        p.history = p.history.filter(h=> !(h.ts===t.ts && h.amount===t.amount && h.direction===t.udhariDirection));
-      }
       d.transactions.splice(idx,1);
       this.save();
       this.toast('Transaction deleted');
@@ -482,76 +474,31 @@
       this.toast('Receipt ready to share (prototype)');
     },
 
-    // ---------- UDHARI ----------
-    renderUdhari(){
-      document.querySelectorAll('#ud-tabs .opt').forEach(o=>{
-        o.onclick = ()=>{ this.state.udhariTab=o.dataset.v; document.querySelectorAll('#ud-tabs .opt').forEach(x=>x.classList.remove('sel')); o.classList.add('sel'); this.renderUdhari(); };
-        o.classList.toggle('sel', o.dataset.v===this.state.udhariTab);
-      });
+    // ---------- MEMBERS ----------
+    renderMembers(){
       const d = this.state.data;
-      const box = document.getElementById('ud-list');
+      const box = document.getElementById('members-list');
+      if (!box) return;
       box.innerHTML = '';
-      const entries = Object.entries(d.parties).map(([name,p])=>({name, balance: p.given - p.received}));
-      let filtered;
-      if(this.state.udhariTab==='lena') filtered = entries.filter(e=>e.balance>0);
-      else filtered = entries.filter(e=>e.balance<0);
-
-      if(filtered.length===0){
-        box.innerHTML = `<div class="kb-empty"><div class="e-ic">${I('users','lg')}</div>${this.state.udhariTab==='lena'?'No one owes you money right now.':'You do not owe anyone right now.'}</div>`;
+      if(!d.members || d.members.length===0){
+        box.innerHTML = `<div class="kb-empty"><div class="e-ic">${I('users','lg')}</div>No members added yet.</div>`;
         return;
       }
-      filtered.forEach(e=>{
+      d.members.forEach(m => {
         const row = document.createElement('div');
-        row.className = 'kb-party-row';
+        row.className = 'kb-party-row'; 
         row.innerHTML = `
-          <div class="av2" onclick="KB.openParty('${e.name}')">${e.name.charAt(0).toUpperCase()}</div>
-          <div class="info" onclick="KB.openParty('${e.name}')">
-            <p class="n">${e.name}</p>
-            <p class="d">${this.fmt(Math.abs(e.balance))} Due</p>
+          <div class="av2">${m.name.charAt(0).toUpperCase()}</div>
+          <div class="info">
+            <p class="n" style="margin-bottom:2px;">${m.name}</p>
+            <p class="d" style="font-size:12px;">${m.designation || 'No Designation'}</p>
+            <p class="d" style="font-size:11px; color:var(--muted-2); margin-top:2px;">${m.address || ''}</p>
           </div>
-          <div class="side">
-            <div class="kb-mini-btns">
-              ${this.state.udhariTab==='lena' ? `<div class="kb-mini-btn" onclick="KB.toast('Reminder sent to ${e.name}')">REMINDER</div><div class="kb-mini-btn" onclick="KB.settleUdhari('${e.name}')">RECEIVED</div>` : `<div class="kb-mini-btn" onclick="KB.settleUdhari('${e.name}')">PAY NOW</div><div class="kb-mini-btn" onclick="KB.toast('Reminder set for ${e.name}')">REMINDER</div>`}
-            </div>
+          <div class="side" style="text-align:right;">
+            <div style="font-size:11px;color:var(--blue); font-weight:600;">${m.mobile||''}</div>
           </div>
         `;
         box.appendChild(row);
-      });
-    },
-
-    settleUdhari(name){
-      const d = this.state.data;
-      const p = d.parties[name];
-      const bal = Math.abs(p.given - p.received);
-      if(p.given > p.received){ p.received += bal; } else { p.given += bal; }
-      p.history.push({ts:Date.now(), amount:bal, direction:'settled', notes:'Marked as settled'});
-      this.save();
-      this.toast(`${name}'s udhaar settled`);
-      this.renderUdhari();
-    },
-
-    openParty(name){ this.state.selectedParty = name; this.go('party'); },
-    renderParty(){
-      const d = this.state.data;
-      const p = d.parties[this.state.selectedParty];
-      if(!p) return;
-      document.getElementById('party-name').textContent = this.state.selectedParty;
-      document.getElementById('party-given').textContent = this.fmt(p.given);
-      document.getElementById('party-received').textContent = this.fmt(p.received);
-      document.getElementById('party-balance').textContent = this.fmt(Math.abs(p.given - p.received));
-      const hist = document.getElementById('party-history');
-      hist.innerHTML = '';
-      if(p.history.length===0){ hist.innerHTML = '<div class="kb-empty">No history yet.</div>'; return; }
-      [...p.history].sort((a,b)=>b.ts-a.ts).forEach(h=>{
-        const row = document.createElement('div');
-        row.className = 'kb-txn';
-        const lbl = h.direction==='given' ? 'Given' : (h.direction==='taken' ? 'Taken' : 'Settled');
-        const cls = h.direction==='given' ? 'neg' : 'pos';
-        const dt = new Date(h.ts);
-        row.innerHTML = `<div class="av" style="background:#F1E8FB;color:var(--violet);">${I('users')}</div>
-          <div class="mid"><p class="name">${lbl}</p><p class="meta">${dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}</p></div>
-          <div class="amt ${cls}">${this.fmt(h.amount)}</div>`;
-        hist.appendChild(row);
       });
     },
 
@@ -640,8 +587,6 @@
       document.getElementById('rp-income').textContent = this.fmt(totals.income);
       document.getElementById('rp-expense').textContent = this.fmt(totals.expense);
       document.getElementById('rp-savings').textContent = this.fmt(totals.income - totals.expense);
-      const udhariOut = Object.values(d.parties).reduce((s,p)=>s + Math.max(p.given-p.received,0),0);
-      document.getElementById('rp-udhari').textContent = this.fmt(udhariOut);
 
       const spentByCat = {};
       d.transactions.forEach(t=>{ if(t.type==='Expense') spentByCat[t.category]=(spentByCat[t.category]||0)+t.amount; });
@@ -663,8 +608,6 @@
       const insights = [];
       if(entries.length>0) insights.push(`${entries[0][0]} is your highest expense category at ${this.fmt(entries[0][1])}.`);
       if(totals.income>0) insights.push(`You've saved ${this.fmt(totals.income-totals.expense)} so far (${Math.round(((totals.income-totals.expense)/totals.income)*100)}% of income).`);
-      const dueSoon = Object.entries(d.parties).filter(([n,p])=>p.given-p.received<0);
-      if(dueSoon.length>0) insights.push(`You owe money to ${dueSoon.length} ${dueSoon.length===1?'person':'people'} — check the Udhari tab.`);
       if(insights.length===0) insights.push('Add a few transactions to start seeing personalized insights here.');
       const ibox = document.getElementById('rp-insights');
       ibox.innerHTML = '';
@@ -711,11 +654,7 @@
         const spent = d.transactions.filter(t=>t.type==='Expense'&&t.category===cat).reduce((s,t)=>s+t.amount,0);
         const pct = (spent/limit)*100;
         if(pct>=100) items.push({ic:'bell', col:'var(--red)', t:'Budget Exceeded', d:`Your ${cat} budget has exceeded by ${this.fmt(spent-limit)}.`});
-        else if(pct>=80) items.push({ic:'bell', col:'var(--amber)', t:'Budget Alert', d:`You've used ${Math.round(pct)}% of your ${cat} budget.`});
-      });
-      Object.entries(d.parties).forEach(([name,p])=>{
-        const bal = p.given-p.received;
-        if(bal<0) items.push({ic:'bell', col:'var(--red)', t:'Udhari Due', d:`You owe ${name} ${this.fmt(Math.abs(bal))}.`});
+        else if(pct>=80) items.push({ic:'bell', col:'var(--amber)', t:'Budget Warning', d:`You've spent ${Math.round(pct)}% of your ${cat} budget.`});
       });
       if(items.length===0) items.push({ic:'check', col:'var(--green)', t:'All caught up', d:'No alerts right now — keep tracking your expenses!'});
       const box = document.getElementById('notif-list');
@@ -737,14 +676,14 @@
       if(!q){ return; }
       const d = this.state.data;
       const txns = d.transactions.filter(t=> (t.party||'').toLowerCase().includes(q) || (t.category||'').toLowerCase().includes(q));
-      const parties = Object.keys(d.parties).filter(n=>n.toLowerCase().includes(q));
-      if(parties.length){
-        const h = document.createElement('p'); h.className='kb-link'; h.style.margin='6px 0'; h.textContent='People'; box.appendChild(h);
-        parties.forEach(n=>{
+      const members = d.members ? d.members.filter(m=>m.name.toLowerCase().includes(q)) : [];
+      if(members.length){
+        const h = document.createElement('p'); h.className='kb-link'; h.style.margin='6px 0'; h.textContent='Members'; box.appendChild(h);
+        members.forEach(m=>{
           const row = document.createElement('div');
           row.className='kb-party-row';
-          row.onclick = ()=>this.openParty(n);
-          row.innerHTML = `<div class="av2">${n.charAt(0).toUpperCase()}</div><div class="info"><p class="n">${n}</p></div>`;
+          row.onclick = ()=>this.go('members');
+          row.innerHTML = `<div class="av2">${m.name.charAt(0).toUpperCase()}</div><div class="info"><p class="n">${m.name}</p><p class="d">${m.designation||''}</p></div>`;
           box.appendChild(row);
         });
       }
@@ -752,7 +691,7 @@
         const h = document.createElement('p'); h.className='kb-link'; h.style.margin='10px 0 6px'; h.textContent='Transactions'; box.appendChild(h);
         txns.slice(0,15).forEach(t=> box.appendChild(this.txnRow(t)));
       }
-      if(!parties.length && !txns.length){ box.innerHTML = '<div class="kb-empty">No results found.</div>'; }
+      if(!members.length && !txns.length){ box.innerHTML = '<div class="kb-empty">No results found.</div>'; }
     }
   };
 
